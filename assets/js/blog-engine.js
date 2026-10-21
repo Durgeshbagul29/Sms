@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "name": "AbracaDabra Software Solutions Pvt. Ltd.",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://sms.abraca-dabra.com/assets/img/logo.webp"
+          "url": "https://sms.abraca-dabra.com/assets/img/logo-106.webp"
         }
       },
       "mainEntityOfPage": canonicalUrl
@@ -482,8 +482,8 @@ document.addEventListener('DOMContentLoaded', () => {
           ` : ''}
           <div class="card-footer">
             <span class="author-name" style="font-size:0.82rem;color:var(--ink-55);">${blog.author}</span>
-            <a href="${getDetailUrl(blog.slug)}" class="read-more-btn">
-              Read More
+            <a href="${getDetailUrl(blog.slug)}" class="read-more-btn" aria-label="Read full article: ${escapeHtml(blog.title)}">
+              Read Guide
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
           </div>

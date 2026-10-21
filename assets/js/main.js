@@ -99,145 +99,121 @@
   // Demo/contact form submission is now handled by assets/js/sms-contact-sheet.js,
   // which wires #demo-form to the shared Google Sheet endpoint.
 
-  // Single-Page ScrollSpy & Back-to-Top — Optimized with cached metrics & rAF (zero forced reflow)
+  // Single-Page ScrollSpy & Back-to-Top — Non-blocking IntersectionObserver & rAF (zero forced reflow)
   var navAnchors = document.querySelectorAll('.nav-links a[href^="#"]');
   var sections = document.querySelectorAll('section[id]');
   var backToTopBtn = document.querySelector(".back-to-top");
-  var sectionBounds = [];
-  var isScrollTicking = false;
-  var cachedDocHeight = 0;
-  var cachedWinHeight = window.innerHeight;
 
-  function measureLayout() {
-    cachedWinHeight = window.innerHeight || 800;
-    cachedDocHeight = document.documentElement.scrollHeight || document.body.scrollHeight || 0;
-    var headerOffset = 110;
-    sectionBounds = [];
-    sections.forEach(function (sec) {
-      var top = sec.offsetTop - headerOffset;
-      var height = sec.offsetHeight;
-      var id = sec.getAttribute("id");
-      sectionBounds.push({
-        id: id,
-        top: top,
-        bottom: top + height
-      });
+  function setActiveNavLink(id) {
+    if (!id) return;
+    navAnchors.forEach(function (a) {
+      var href = a.getAttribute("href");
+      if (href === "#" + id) {
+        if (!a.classList.contains("active")) {
+          a.setAttribute("aria-current", "page");
+          a.classList.add("active");
+        }
+      } else {
+        if (a.classList.contains("active")) {
+          a.removeAttribute("aria-current");
+          a.classList.remove("active");
+        }
+      }
     });
   }
 
-  function handleScrollTick() {
-    var scrollPos = window.scrollY || window.pageYOffset || 0;
-    var currentSectionId = "";
-
-    // Back to top visibility
-    if (backToTopBtn) {
-      if (scrollPos > 400) {
-        backToTopBtn.classList.add("visible");
-      } else {
-        backToTopBtn.classList.remove("visible");
+  if ("IntersectionObserver" in window && sections.length && navAnchors.length) {
+    var spyObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            setActiveNavLink(entry.target.getAttribute("id"));
+          }
+        });
+      },
+      {
+        rootMargin: "-20% 0px -65% 0px",
+        threshold: 0
       }
-    }
-
-    // ScrollSpy active state
-    if (sectionBounds.length > 0) {
-      if ((cachedWinHeight + scrollPos) >= cachedDocHeight - 60) {
-        currentSectionId = sectionBounds[sectionBounds.length - 1].id;
-      } else {
-        for (var i = 0; i < sectionBounds.length; i++) {
-          var b = sectionBounds[i];
-          if (scrollPos >= b.top && scrollPos < b.bottom) {
-            currentSectionId = b.id;
-            break;
-          }
-        }
-      }
-    }
-
-    if (currentSectionId) {
-      navAnchors.forEach(function (a) {
-        var href = a.getAttribute("href");
-        if (href === "#" + currentSectionId) {
-          if (!a.classList.contains("active")) {
-            a.setAttribute("aria-current", "page");
-            a.classList.add("active");
-          }
-        } else {
-          if (a.classList.contains("active")) {
-            a.removeAttribute("aria-current");
-            a.classList.remove("active");
-          }
-        }
-      });
-    }
-
-    isScrollTicking = false;
+    );
+    sections.forEach(function (sec) {
+      spyObserver.observe(sec);
+    });
   }
 
-  function requestScrollTick() {
-    if (!isScrollTicking) {
-      isScrollTicking = true;
-      requestAnimationFrame(handleScrollTick);
-    }
-  }
-
-  if (sections.length && navAnchors.length) {
-    measureLayout();
-    window.addEventListener("scroll", requestScrollTick, { passive: true });
-    var resizeTimer = null;
-    window.addEventListener("resize", function () {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function () {
-        measureLayout();
-        requestScrollTick();
-      }, 150);
-    }, { passive: true });
-    requestScrollTick();
-  }
-
+  // Back-to-Top visibility — Passive scroll check with zero layout measurement
   if (backToTopBtn) {
+    var isBackToTopVisible = false;
+    var isScrollTicking = false;
+
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (!isScrollTicking) {
+          isScrollTicking = true;
+          requestAnimationFrame(function () {
+            var scrollPos = window.scrollY || window.pageYOffset || 0;
+            var shouldBeVisible = scrollPos > 400;
+            if (shouldBeVisible !== isBackToTopVisible) {
+              isBackToTopVisible = shouldBeVisible;
+              backToTopBtn.classList.toggle("visible", isBackToTopVisible);
+            }
+            isScrollTicking = false;
+          });
+        }
+      },
+      { passive: true }
+    );
+
     backToTopBtn.addEventListener("click", function (e) {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
 
-  // Mobile Gallery Slider Controls — Cached card width & rAF-throttled dot updates
+  // Mobile Gallery Slider Controls — Lazy layout calculation on interaction
   var sliderContainer = document.querySelector(".gallery-grid.mobile-slider");
   var prevBtn = document.querySelector(".slider-arrow.prev");
   var nextBtn = document.querySelector(".slider-arrow.next");
   var dots = document.querySelectorAll(".slider-dots .dot");
 
   if (sliderContainer) {
-    var cachedCardWidth = 260;
+    var cachedCardWidth = 0;
 
-    function measureCardWidth() {
+    function getCardWidth() {
+      if (cachedCardWidth > 0) return cachedCardWidth;
       var card = sliderContainer.querySelector(".gallery-item");
       if (card) {
         cachedCardWidth = card.offsetWidth + 24;
       }
+      return cachedCardWidth || 280;
     }
 
-    measureCardWidth();
-    window.addEventListener("resize", function () {
-      measureCardWidth();
-    }, { passive: true });
+    window.addEventListener(
+      "resize",
+      function () {
+        cachedCardWidth = 0;
+      },
+      { passive: true }
+    );
 
     if (prevBtn) {
       prevBtn.addEventListener("click", function () {
-        sliderContainer.scrollBy({ left: -cachedCardWidth, behavior: "smooth" });
+        sliderContainer.scrollBy({ left: -getCardWidth(), behavior: "smooth" });
       });
     }
 
     if (nextBtn) {
       nextBtn.addEventListener("click", function () {
-        sliderContainer.scrollBy({ left: cachedCardWidth, behavior: "smooth" });
+        sliderContainer.scrollBy({ left: getCardWidth(), behavior: "smooth" });
       });
     }
 
     var isSliderTicking = false;
     function updateDots() {
+      var width = getCardWidth();
       var scrollLeft = sliderContainer.scrollLeft;
-      var activeIndex = Math.round(scrollLeft / (cachedCardWidth || 1));
+      var activeIndex = Math.round(scrollLeft / width);
 
       dots.forEach(function (dot, idx) {
         if (idx === activeIndex) {
@@ -251,19 +227,23 @@
       isSliderTicking = false;
     }
 
-    sliderContainer.addEventListener("scroll", function () {
-      if (!isSliderTicking) {
-        isSliderTicking = true;
-        requestAnimationFrame(updateDots);
-      }
-    }, { passive: true });
+    sliderContainer.addEventListener(
+      "scroll",
+      function () {
+        if (!isSliderTicking) {
+          isSliderTicking = true;
+          requestAnimationFrame(updateDots);
+        }
+      },
+      { passive: true }
+    );
 
     dots.forEach(function (dot) {
       dot.addEventListener("click", function () {
         var index = parseInt(dot.getAttribute("data-index"), 10);
         if (!isNaN(index)) {
           sliderContainer.scrollTo({
-            left: index * cachedCardWidth,
+            left: index * getCardWidth(),
             behavior: "smooth"
           });
         }

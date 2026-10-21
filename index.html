@@ -48,16 +48,11 @@
   <!-- Preconnect & Non-render-blocking Google Fonts with swap -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" as="style" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" /></noscript>
 
-  <!-- Core & Async Styles -->
-  <link rel="stylesheet" href="assets/css/style.css" />
-  <link rel="stylesheet" href="assets/css/sms-chatbot.css" media="print" onload="this.media='all'" />
-  <noscript><link rel="stylesheet" href="assets/css/sms-chatbot.css" /></noscript>
-  <link rel="stylesheet" href="assets/css/blog.css" media="print" onload="this.media='all'" />
-  <noscript><link rel="stylesheet" href="assets/css/blog.css" /></noscript>
+  <!-- Core Production Stylesheet (Cleaned, Minified, Self-contained) -->
+  <link rel="stylesheet" href="assets/css/style.min.css" />
 
   <!-- Structured Data (Organization, WebSite, SoftwareApplication, Breadcrumbs, FAQ) -->
   <script type="application/ld+json">
@@ -126,8 +121,9 @@
     },
     "offers": {
       "@type": "Offer",
-      "availability": "https://schema.org/InStock",
+      "price": "0",
       "priceCurrency": "INR",
+      "availability": "https://schema.org/InStock",
       "description": "Contact sales for plant/enterprise pricing"
     }
   }
@@ -227,7 +223,7 @@
       <div class="nav-row">
         <a href="#hero" class="brand" aria-label="SMS Safety Management System home">
           <img src="assets/img/logo-106.webp" srcset="assets/img/logo-106.webp 2x, assets/img/logo-53.webp 1x" width="53" height="53" alt="SMS Logo" class="brand-logo"
-            onerror="this.onerror=null;this.src='assets/img/logo.webp';" />
+            onerror="this.onerror=null;this.src='assets/img/logo-53.webp';" />
           <span class="brand-text"><strong>SMS</strong><span>SAFETY MANAGEMENT SYSTEM</span></span>
         </a>
         <nav class="nav-links" aria-label="Primary">
@@ -279,7 +275,7 @@
               <span class="platform-chip"><span class="dot"></span> iOS &mdash; coming soon</span>
             </div>
           </div>
-          <div class="dash-mock reveal">
+          <div class="dash-mock">
             <div class="dash-mock-top">
               <div class="dots"><span></span><span></span><span></span></div>
               <div class="dash-mock-top-title">SMS SAFETY &middot; SAFETY DASHBOARD</div>
@@ -1370,8 +1366,8 @@
               <div class="card-tags-row"><span class="mini-tag">#Safety Culture</span><span class="mini-tag">#Incident Reporting</span><span class="mini-tag">#EHS Leadership</span></div>
               <div class="card-footer">
                 <span class="author-name" style="font-size:0.82rem;color:var(--ink-55);">AbracaDabra EHS Team</span>
-                <a href="insights/positive-safety-culture-digital-sms.html" class="read-more-btn">
-                  Read More
+                <a href="insights/positive-safety-culture-digital-sms.html" class="read-more-btn" aria-label="Read full article: Building a Positive Safety Culture">
+                  Read Safety Culture Guide
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
               </div>
@@ -1393,8 +1389,8 @@
               <div class="card-tags-row"><span class="mini-tag">#Near Miss</span><span class="mini-tag">#Risk Reduction</span><span class="mini-tag">#Accident Prevention</span></div>
               <div class="card-footer">
                 <span class="author-name" style="font-size:0.82rem;color:var(--ink-55);">AbracaDabra EHS Team</span>
-                <a href="insights/near-miss-reporting-to-risk-reduction.html" class="read-more-btn">
-                  Read More
+                <a href="insights/near-miss-reporting-to-risk-reduction.html" class="read-more-btn" aria-label="Read full article: Near Miss Reporting to Risk Reduction">
+                  Read Near-Miss Guide
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
               </div>
@@ -1416,8 +1412,8 @@
               <div class="card-tags-row"><span class="mini-tag">#Incident Reporting</span><span class="mini-tag">#Auditable Reports</span><span class="mini-tag">#Safety KPIs</span></div>
               <div class="card-footer">
                 <span class="author-name" style="font-size:0.82rem;color:var(--ink-55);">AbracaDabra EHS Team</span>
-                <a href="insights/digitizing-incident-reporting-workplace-safety.html" class="read-more-btn">
-                  Read More
+                <a href="insights/digitizing-incident-reporting-workplace-safety.html" class="read-more-btn" aria-label="Read full article: How a Safety Management System Digitizes Incident Reporting">
+                  Read Incident Reporting Guide
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
               </div>
@@ -1439,8 +1435,8 @@
               <div class="card-tags-row"><span class="mini-tag">#Safety Observation</span><span class="mini-tag">#CAPA Tracking</span><span class="mini-tag">#Hazard Management</span></div>
               <div class="card-footer">
                 <span class="author-name" style="font-size:0.82rem;color:var(--ink-55);">AbracaDabra EHS Team</span>
-                <a href="insights/safety-observation-software-workplace-hazard-management.html" class="read-more-btn">
-                  Read More
+                <a href="insights/safety-observation-software-workplace-hazard-management.html" class="read-more-btn" aria-label="Read full article: Safety Observation Software Proactive Hazard Management">
+                  Read Safety Observation Guide
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
               </div>
@@ -1462,8 +1458,8 @@
               <div class="card-tags-row"><span class="mini-tag">#EHS Compliance</span><span class="mini-tag">#ISO 45001</span><span class="mini-tag">#Safety Audits</span></div>
               <div class="card-footer">
                 <span class="author-name" style="font-size:0.82rem;color:var(--ink-55);">AbracaDabra EHS Team</span>
-                <a href="insights/digital-safety-compliance-reporting-guide.html" class="read-more-btn">
-                  Read More
+                <a href="insights/digital-safety-compliance-reporting-guide.html" class="read-more-btn" aria-label="Read full article: Digital Safety Compliance and Reporting Guide">
+                  Read Compliance Guide
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
               </div>
@@ -1700,7 +1696,7 @@
         <div class="footer-brand">
           <a href="#hero" class="brand" aria-label="SMS Safety Management System home">
             <img src="assets/img/logo-106.webp" srcset="assets/img/logo-106.webp 2x, assets/img/logo-53.webp 1x" width="53" height="53" alt="SMS Logo" class="brand-logo"
-              onerror="this.onerror=null;this.src='assets/img/logo.webp';" />
+              onerror="this.onerror=null;this.src='assets/img/logo-53.webp';" />
             <span class="brand-text"><strong>SMS</strong><span>SAFETY MANAGEMENT SYSTEM</span></span>
           </a>
           <p>Safety observation, accident and near-miss reporting on one auditable platform &mdash; web, Android and
@@ -1809,11 +1805,9 @@
     <span class="whatsapp-tooltip">Chat on WhatsApp: +91 9284256635</span>
   </a>
 
-  <script src="assets/js/main.js" defer></script>
-  <script src="assets/js/sms-contact-sheet.js" defer></script>
-  <script src="assets/js/sms-chatbot.js" defer></script>
-  <script src="assets/js/blogs-data.js" defer></script>
-  <script src="assets/js/blog-engine.js" defer></script>
+  <script src="assets/js/main.min.js" defer></script>
+  <script src="assets/js/sms-contact-sheet.min.js" defer></script>
+  <script src="assets/js/sms-chatbot.min.js" defer></script>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 

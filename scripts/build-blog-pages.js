@@ -50,8 +50,17 @@ function initials(name) {
   return name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
 }
 
+const BLOG_LINK_LABELS = {
+  'positive-safety-culture-digital-sms': 'Read Safety Culture Guide',
+  'near-miss-reporting-to-risk-reduction': 'Read Near-Miss Guide',
+  'digitizing-incident-reporting-workplace-safety': 'Read Incident Reporting Guide',
+  'safety-observation-software-workplace-hazard-management': 'Read Safety Observation Guide',
+  'digital-safety-compliance-reporting-guide': 'Read Compliance Guide',
+};
+
 function relatedCardHtml(b) {
   const thumb = b.featuredImage.replace(/\.webp$/, '-thumb.webp');
+  const btnLabel = BLOG_LINK_LABELS[b.slug] || 'Read Full Guide';
   return `
               <article class="blog-card">
                 <div class="card-img-wrap">
@@ -69,9 +78,9 @@ function relatedCardHtml(b) {
                   ${b.tags ? `<div class="card-tags-row">${b.tags.slice(0, 3).map((t) => `<span class="mini-tag">#${esc(t)}</span>`).join('')}</div>` : ''}
                   <div class="card-footer">
                     <span class="author-name" style="font-size:0.82rem;color:var(--ink-55);">${esc(b.author)}</span>
-                    <a href="${b.slug}.html" class="read-more-btn">
-                      Read More
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    <a href="${b.slug}.html" class="read-more-btn" aria-label="Read full article: ${esc(b.title)}">
+                      ${btnLabel}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </a>
                   </div>
                 </div>
@@ -125,7 +134,7 @@ function buildPage(blog, index) {
     publisher: {
       '@type': 'Organization',
       name: 'AbracaDabra Software Solutions Pvt. Ltd.',
-      logo: { '@type': 'ImageObject', url: `${SITE}/assets/img/logo.webp` },
+      logo: { '@type': 'ImageObject', url: `${SITE}/assets/img/logo-106.webp` },
     },
     mainEntityOfPage: canonicalUrl,
   };
@@ -171,8 +180,8 @@ function buildPage(blog, index) {
   <meta name="twitter:image" content="${imageUrl}" />
 
   <!-- Icons -->
-  <link rel="icon" href="../assets/img/logo.webp" type="image/webp" />
-  <link rel="icon" href="../assets/img/logo.webp" sizes="32x32" type="image/webp" />
+  <link rel="icon" href="../assets/img/logo-53.webp" type="image/webp" />
+  <link rel="icon" href="../assets/img/logo-53.webp" sizes="32x32" type="image/webp" />
   <link rel="icon" href="../assets/img/favicon-192.webp" sizes="192x192" type="image/webp" />
   <link rel="apple-touch-icon" href="../assets/img/favicon-192.webp" />
   <link rel="manifest" href="../site.webmanifest" />
@@ -180,13 +189,10 @@ function buildPage(blog, index) {
   <!-- Fonts & Styles -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" as="style" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" /></noscript>
-  <link rel="stylesheet" href="../assets/css/style.css" />
-  <link rel="stylesheet" href="../assets/css/sms-chatbot.css" media="print" onload="this.media='all'" />
-  <noscript><link rel="stylesheet" href="../assets/css/sms-chatbot.css" /></noscript>
-  <link rel="stylesheet" href="../assets/css/blog.css" />
+  <link rel="stylesheet" href="../assets/css/style.min.css" />
+  <link rel="stylesheet" href="../assets/css/blog.min.css" />
 
   <script type="application/ld+json">${JSON.stringify(articleLd)}</script>
   <script type="application/ld+json">${JSON.stringify(breadcrumbLd)}</script>
@@ -379,9 +385,9 @@ ${blog.fullContent.replace(/\.\.\/index\.html/g, '../index.html')}
   </footer>
 
   <!-- SCRIPTS -->
-  <script src="../assets/js/main.js" defer></script>
-  <script src="../assets/js/sms-contact-sheet.js" defer></script>
-  <script src="../assets/js/sms-chatbot.js" defer></script>
+  <script src="../assets/js/main.min.js" defer></script>
+  <script src="../assets/js/sms-contact-sheet.min.js" defer></script>
+  <script src="../assets/js/sms-chatbot.min.js" defer></script>
   <script src="../assets/js/blogs-data.js" defer></script>
   <script src="../assets/js/blog-engine.js" defer></script>
 

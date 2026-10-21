@@ -106,10 +106,23 @@
   var stepIndex = 0, answers = {}, multiSelect = [];
   var submitting = false, lastPayload = null;
 
+  function ensureChatStyles() {
+    if (document.getElementById("sms-chatbot-css")) return;
+    var link = document.createElement("link");
+    link.id = "sms-chatbot-css";
+    link.rel = "stylesheet";
+    var isSub = window.location.pathname.includes("/insights/");
+    link.href = isSub ? "../assets/css/sms-chatbot.min.css" : "assets/css/sms-chatbot.min.css";
+    document.head.appendChild(link);
+  }
+
   function init() {
+    ensureChatStyles();
     buildLauncher();
     launcherEl = document.getElementById("sms-chat-launcher");
-    launcherEl.addEventListener("click", toggleChat);
+    if (launcherEl) {
+      launcherEl.addEventListener("click", toggleChat);
+    }
   }
 
   function buildLauncher() {
@@ -525,9 +538,30 @@
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
+  var initialized = false;
+  function triggerInit() {
+    if (initialized) return;
+    initialized = true;
+    window.removeEventListener("scroll", triggerInit);
+    window.removeEventListener("pointerdown", triggerInit);
     init();
+  }
+
+  function scheduleChatbot() {
+    window.addEventListener("scroll", triggerInit, { passive: true, once: true });
+    window.addEventListener("pointerdown", triggerInit, { passive: true, once: true });
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(function () {
+        setTimeout(triggerInit, 1200);
+      }, { timeout: 3000 });
+    } else {
+      setTimeout(triggerInit, 2000);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", scheduleChatbot);
+  } else {
+    scheduleChatbot();
   }
 })();
