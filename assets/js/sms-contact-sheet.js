@@ -1,0 +1,66 @@
+/* ===================================================================
+   SafeGuard SMS — Contact / Request-a-Demo form connector
+   Wires up any #demo-form on the page (index.html's inline contact
+   section and contact.html both use the same markup: fullname, email,
+   phone, company, message) to the shared AbracaDabra Google Apps Script
+   endpoint, tagged so SMS submissions are distinguishable from KMS ones
+   in the sheet. Replaces the old front-end-only simulation that never
+   actually sent anything anywhere.
+   =================================================================== */
+(function () {
+  "use strict";
+
+  var SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycby8zySYbzD3R3kOz3nFpIXoICZM2CCP8xVejpnbVsMZ0wx7ETe19eAuS5wXmnZudiB-/exec";
+
+  function init() {
+    var form = document.getElementById("demo-form");
+    if (!form) return;
+
+    var status = form.querySelector(".form-status");
+    var submitBtn = form.querySelector('button[type="submit"]');
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      var originalLabel = submitBtn ? submitBtn.textContent : "Request demo";
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Submitting\u2026"; }
+      if (status) { status.textContent = ""; status.className = "form-status"; }
+
+      var fd = new FormData(form);
+      fd.append("formType", "sms_demo");
+      fd.append("source", "SMS Safety Website \u2014 Contact Form");
+      fd.append("product", "SMS Safety");
+
+      fetch(SHEET_ENDPOINT, { method: "POST", body: fd, mode: "no-cors" })
+        .then(function () {
+          if (status) {
+            status.textContent = "Thanks \u2014 your request has been received. Our team will reach out within one business day.";
+            status.className = "form-status ok";
+          }
+          form.reset();
+        })
+        .catch(function (err) {
+          console.error("[SafeGuard SMS Form] Submission error:", err);
+          if (status) {
+            status.textContent = "Something went wrong sending your request. Please try again, or reach us directly at support@abraca-dabra.com.";
+            status.className = "form-status err";
+          }
+        })
+        .finally(function () {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalLabel; }
+        });
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();

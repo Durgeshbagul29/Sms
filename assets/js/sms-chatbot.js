@@ -1,0 +1,533 @@
+/* ===================================================================
+   SMS Safety Management System — Floating AI/Requirement Assistant
+   Dual-mode: "Ask About SMS Safety" (FAQ) + "My Requirements" (lead capture)
+   Same architecture/backend pattern as the KMS site assistant: injects its
+   own DOM, so dropping the <link>/<script> tags on any page turns it on.
+
+   BACKEND: posts to the AbracaDabra Google Apps Script endpoint that is
+   already wired to a Google Sheet for the KMS site. Submissions are tagged
+   with formType/source/product below so SMS rows are distinguishable from
+   KMS rows in the same sheet. Swap SHEET_ENDPOINT for a dedicated Apps
+   Script URL if SMS leads should land in a separate sheet instead.
+   =================================================================== */
+(function () {
+  "use strict";
+
+  var SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycby8zySYbzD3R3kOz3nFpIXoICZM2CCP8xVejpnbVsMZ0wx7ETe19eAuS5wXmnZudiB-/exec";
+
+  /* ---------------- FAQ knowledge base ---------------- */
+  var FAQ = [
+    {
+      q: ["what is sms", "what is safeguard", "about sms", "tell me about sms", "explain sms", "what is sms safety"],
+      a: "SMS Safety Management System (Safety Management System) is a digital platform that replaces paper safety registers with one workflow: submit a safety observation, accident or near-miss \u2192 route it for review \u2192 notify the reporter \u2192 report on it. It runs as a Web Portal and an Android app today, with iOS coming soon."
+    },
+    {
+      q: ["features", "what features", "capabilities", "what can sms do", "functionality", "modules"],
+      a: "SMS Safety Management System comes with 12 built-in features, including:\n\u2022 **Safety Observation, Accident & Near-Miss Reporting** \u2014 three distinct report types\n\u2022 **Safety KPI Dashboard** \u2014 live pie & column charts by status and department\n\u2022 **Real-Time Status Updates** \u2014 syncs instantly across web and mobile\n\u2022 **Smart Notifications** \u2014 alerts on submission and status change\n\u2022 **Photo / Evidence Attachments** \u2014 attach evidence to every report\n\u2022 **Auditable Excel & PDF Reports** \u2014 one-click exports for any timeframe"
+    },
+    {
+      q: ["platforms", "web app", "mobile app", "android", "ios", "devices", "access", "app store", "google play"],
+      a: "SMS Safety Management System runs on three platforms sharing the same live data:\n\u2022 **Web Portal** \u2014 full admin console, KPI dashboard, HR console, any desktop browser\n\u2022 **Android App** \u2014 live now on Google Play, submit reports with photos on the floor\n\u2022 **iOS App** \u2014 same workflow as Android, coming soon to the App Store"
+    },
+    {
+      q: ["workflow", "how does it work", "process", "steps", "how sms works", "lifecycle"],
+      a: "The SMS Safety Management System workflow has 5 stages:\n1. **Submit** \u2014 a user reports a safety observation, accident or near-miss, from web or mobile\n2. **Review** \u2014 the report enters the admin queue with a pending status\n3. **Update / Approve** \u2014 an admin actions the report and logs the decision\n4. **Notify** \u2014 the exact person who filed it is notified the moment a decision is made\n5. **Report** \u2014 KPIs and auditable Excel/PDF exports are ready whenever needed"
+    },
+    {
+      q: ["who uses", "users", "roles", "employee", "admin", "hr", "manager", "user roles", "login"],
+      a: "SMS Safety Management System has four distinct logins, each scoped to what that role needs:\n\u2022 **User** \u2014 report from mobile or web, attach photos, track personal history\n\u2022 **Manager** \u2014 monitor team reports and department KPIs, validate and forward for admin action\n\u2022 **Admin** \u2014 full review queue, update status with notes, plant-wide KPI analytics, export reports\n\u2022 **HR** \u2014 create, edit and deactivate user/admin accounts as your team changes"
+    },
+    {
+      q: ["report", "excel", "pdf", "export", "download", "audit", "audit trail"],
+      a: "SMS Safety Management System offers flexible, audit-ready reporting:\n\u2022 **PDF Report** \u2014 the full lifecycle of a single report from submission to closure\n\u2022 **Excel Report** \u2014 a consolidated auditable export across every report and parameter, for any timeframe\n\u2022 **KPI Dashboard** \u2014 live pie and column charts by status and department\nEvery report keeps a complete, timestamped status history \u2014 nothing about how a decision was reached gets lost."
+    },
+    {
+      q: ["notification", "alert", "notify", "push notification", "email alert"],
+      a: "The moment a report arrives or its status changes, both the reporter and the responsible admin are notified automatically \u2014 no manual follow-up needed, and no report sits unread in a register."
+    },
+    {
+      q: ["image", "photo", "picture", "evidence", "attachment", "before after"],
+      a: "Every report \u2014 observation, accident or near-miss \u2014 can have photo evidence attached directly to the record. It's stored securely and stays available for reference, useful for safety and quality audits."
+    },
+    {
+      q: ["observation", "near miss", "near-miss", "accident", "difference", "incident types"],
+      a: "SMS Safety Management System tracks three report types with the same rigour:\n\u2022 **Observation** \u2014 an unsafe condition or behaviour spotted before anything happens\n\u2022 **Near-miss** \u2014 an event that almost caused harm but didn't\n\u2022 **Accident** \u2014 captured with time, location, people involved, action taken and injury classification\nBoth observations and near-misses matter because they surface hazards early, before they become accidents."
+    },
+    {
+      q: ["problem", "issue", "without sms", "paper form", "paper register", "why sms", "why safeguard"],
+      a: "Without a system like SMS Safety Management System, plants usually deal with:\n\u2022 Safety reports sitting in paper registers with no accountability\n\u2022 Reporters never finding out if their observation was actioned\n\u2022 Photo evidence scattered across personal phones\n\u2022 Manual collation for every safety audit\n\u2022 No auditable trail of who decided what, and when\n\nSMS Safety Management System applies the same disciplined submit \u2192 review \u2192 decide \u2192 notify \u2192 report workflow AbracaDabra built for its Kaizen Management System, adapted for safety-specific categories, severities and evidence fields."
+    },
+    {
+      q: ["demo", "trial", "try", "pricing", "cost", "implement", "how to get", "buy", "purchase"],
+      a: "Great question! I can connect you with our SMS Safety team to understand your plant's requirements and arrange a personalised demo. Would you like me to collect a few details so the team can reach out?",
+      smartSuggest: true
+    },
+    {
+      q: ["contact", "reach", "phone number", "email id", "address", "support", "talk to someone"],
+      a: "You can reach the SMS Safety team at:\n\ud83d\udce7 support@abraca-dabra.com\n\ud83d\udcde +91 98225 45211 / +91 77090 53245\n\ud83d\udccd 2nd Floor, Krishna Building, Above Bank of Baroda, Bytco Point, Nashik Road, Nashik 422101, Maharashtra, India\n\ud83c\udf10 abraca-dabra.com"
+    },
+    {
+      q: ["implementation", "deploy", "setup", "onboarding", "how long", "timeline", "rollout"],
+      a: "Most plants are live within a few weeks \u2014 provisioning admin and HR accounts, configuring departments and report categories, and onboarding the first batch of user accounts. To get an accurate rollout plan for your organisation, I can collect your requirements and the team will reach out personally.",
+      smartSuggest: true
+    },
+    {
+      q: ["security", "data", "safe", "privacy", "cloud", "sync"],
+      a: "A report submitted on Android reaches the web portal's review queue instantly, and an admin's update shows up on the reporter's phone the same way \u2014 there's no export step and no version of the record that's more current than another. Every action is logged, and user access is controlled by your HR admin."
+    },
+    {
+      q: ["location", "plant", "branch", "multi-location", "multiple", "sites"],
+      a: "SafeGuard SMS is deployed with Haldex India across multiple plant locations, all sharing the same live data \u2014 a report filed at one site is immediately visible to admins anywhere, with no platform being more \"current\" than another."
+    },
+    {
+      q: ["kaizen", "kms", "kaizen management", "sister product", "other product"],
+      a: "Kaizen Management System (KMS) is AbracaDabra's sister product for continuous-improvement tracking \u2014 it shares the exact same submit \u2192 review \u2192 notify \u2192 report engine that powers SafeGuard SMS, just applied to kaizen ideas instead of safety reports. You can explore it at kaizenmanagementsystem.in \u2014 I can open it for you, or connect you with the team about either product."
+    }
+  ];
+
+  var FALLBACK_QUICK = ["Key features", "How it works", "Platforms & apps", "Request a demo", "Contact team"];
+
+  /* ---------------- Requirement wizard steps ---------------- */
+  var STEPS = [
+    { key: "fullName", label: "Full Name", ask: "Let's get started! \ud83d\udc4b\n\nFirst, what's your full name?", placeholder: "Your full name", type: "text" },
+    { key: "company", label: "Company / Plant", ask: "Great, {name}! Which company or plant is this for?", placeholder: "Company / plant name", type: "text" },
+    { key: "email", label: "Work Email", ask: "What's your work email address?", placeholder: "you@company.com", type: "email" },
+    { key: "phone", label: "Phone / WhatsApp", ask: "And your phone or WhatsApp number? Our team will reach out on this.", placeholder: "+91 00000 00000", type: "tel" },
+    { key: "teamSize", label: "Plant / Team Size", ask: "How many plant workers or users would use SMS Safety?", type: "quick", options: ["1\u201350", "51\u2013200", "201\u2013500", "500+"] },
+    { key: "focusArea", label: "Primary Focus", ask: "What's the main thing you want to solve first?", type: "quick", options: ["Safety Observations", "Accident Reporting", "Near-Miss / CAPA", "KPI Dashboard", "Full Platform", "Not sure yet"] },
+    { key: "budget", label: "Budget", ask: "Last one! \ud83d\udcb0 What's your approximate budget for this?", type: "quick", options: ["Under \u20b91 Lakh", "\u20b91\u20133 Lakhs", "\u20b93\u20135 Lakhs", "\u20b95 Lakhs+", "Not decided yet"] }
+  ];
+  var STEP_COUNT = STEPS.length;
+
+  /* ---------------- State ---------------- */
+  var launcherEl, windowEl, messagesEl, quickRepliesEl, inputEl, sendBtn,
+      progressEl, progressFillEl, progressLabelEl;
+  var isOpen = false, windowBuilt = false, mode = null;
+  var stepIndex = 0, answers = {}, multiSelect = [];
+  var submitting = false, lastPayload = null;
+
+  function init() {
+    buildLauncher();
+    launcherEl = document.getElementById("sms-chat-launcher");
+    launcherEl.addEventListener("click", toggleChat);
+  }
+
+  function buildLauncher() {
+    var root = document.createElement("div");
+    root.id = "sms-chatbot-root";
+    root.innerHTML =
+      '<button id="sms-chat-launcher" aria-label="Open SafeGuard SMS Assistant" title="Chat with SafeGuard SMS Assistant">' +
+        '<span class="sms-launcher-badge"></span>' +
+        '<span class="launcher-icon-chat">' +
+          '<svg viewBox="0 0 24 24" fill="none" width="26" height="26"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</span>' +
+        '<span class="launcher-icon-close">' +
+          '<svg viewBox="0 0 24 24" fill="none" width="22" height="22"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>' +
+        '</span>' +
+      '</button>';
+    document.body.appendChild(root);
+  }
+
+  function buildWindow() {
+    if (windowBuilt) return;
+    windowBuilt = true;
+    var root = document.getElementById("sms-chatbot-root");
+    var wrap = document.createElement("div");
+    wrap.innerHTML =
+      '<div id="sms-chat-window" role="dialog" aria-modal="true" aria-label="SafeGuard SMS Assistant">' +
+        '<div class="schat-header">' +
+          '<div class="schat-header__avatar">' +
+            '<svg viewBox="0 0 24 24" fill="none" width="20" height="20"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>' +
+            '<span class="schat-header__avatar-online"></span>' +
+          '</div>' +
+          '<div class="schat-header__info">' +
+            '<div class="schat-header__name">SafeGuard SMS Assistant</div>' +
+            '<div class="schat-header__status">Online \u00b7 Safety Management System</div>' +
+          '</div>' +
+          '<div class="schat-header__actions">' +
+            '<button class="schat-btn-icon" id="schat-minimize" aria-label="Minimize"><svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>' +
+            '<button class="schat-btn-icon" id="schat-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="schat-mode-tab">' +
+          '<button id="schat-tab-req" class="is-active">\ud83d\udccb My Requirements</button>' +
+          '<button id="schat-tab-ai">\ud83d\udcac Ask About SMS</button>' +
+        '</div>' +
+        '<div class="schat-progress" id="schat-progress">' +
+          '<div class="schat-progress__label"><span id="schat-progress-label">Step 1 of ' + STEP_COUNT + '</span><span id="schat-progress-pct">0%</span></div>' +
+          '<div class="schat-progress__bar"><div class="schat-progress__fill" id="schat-progress-fill" style="width:0%"></div></div>' +
+        '</div>' +
+        '<div class="schat-messages" id="schat-messages"></div>' +
+        '<div class="schat-quick-replies" id="schat-quick-replies"></div>' +
+        '<div class="schat-input-area">' +
+          '<input type="text" id="schat-input" aria-label="Message SafeGuard SMS Assistant" placeholder="Type a message\u2026" autocomplete="off" maxlength="500">' +
+          '<button class="schat-send-btn" id="schat-send" aria-label="Send message" disabled><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+        '</div>' +
+      '</div>';
+    root.appendChild(wrap.firstElementChild);
+
+    windowEl = document.getElementById("sms-chat-window");
+    messagesEl = document.getElementById("schat-messages");
+    quickRepliesEl = document.getElementById("schat-quick-replies");
+    inputEl = document.getElementById("schat-input");
+    sendBtn = document.getElementById("schat-send");
+    progressEl = document.getElementById("schat-progress");
+    progressFillEl = document.getElementById("schat-progress-fill");
+    progressLabelEl = document.getElementById("schat-progress-label");
+
+    document.getElementById("schat-minimize").addEventListener("click", closeChat);
+    document.getElementById("schat-close").addEventListener("click", closeChat);
+    document.getElementById("schat-tab-ai").addEventListener("click", function () { switchMode("ai"); });
+    document.getElementById("schat-tab-req").addEventListener("click", function () { switchMode("req"); });
+    sendBtn.addEventListener("click", handleSend);
+    inputEl.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+    });
+    inputEl.addEventListener("input", function () { sendBtn.disabled = inputEl.value.trim() === ""; });
+    sendBtn.disabled = true;
+
+    switchMode("req");
+  }
+
+  function toggleChat() {
+    buildWindow();
+    if (isOpen) { closeChat(); return; }
+    isOpen = true;
+    windowEl.classList.add("is-open");
+    launcherEl.classList.add("is-open");
+    var badge = launcherEl.querySelector(".sms-launcher-badge");
+    if (badge) badge.style.display = "none";
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(function () { if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight; });
+    setTimeout(function () { if (inputEl) inputEl.focus(); }, 350);
+  }
+
+  function closeChat() {
+    isOpen = false;
+    windowEl.classList.remove("is-open");
+    launcherEl.classList.remove("is-open");
+    document.body.style.overflow = "";
+  }
+
+  function switchMode(next) {
+    mode = next;
+    document.getElementById("schat-tab-req").classList.toggle("is-active", next === "req");
+    document.getElementById("schat-tab-ai").classList.toggle("is-active", next === "ai");
+    clearMessages();
+    clearQuickReplies();
+    if (next === "ai") {
+      progressEl.classList.remove("is-visible");
+      pushBot("Ask me anything about SafeGuard SMS \u2014 features, workflow, platforms, roles, reports, or how it compares to your current process.");
+      showQuickReplies(["What is SafeGuard SMS?", "Key features", "Platforms & apps", "How it works", "Reports & KPIs", "Contact team"]);
+      setInputEnabled(true);
+    } else {
+      stepIndex = 0; answers = {}; multiSelect = [];
+      progressEl.classList.add("is-visible");
+      startWizard();
+    }
+  }
+
+  function handleQuickReply(value) {
+    if (!value) return;
+    if (value === "Ask About SMS") { clearMessages(); clearQuickReplies(); switchMode("ai"); return; }
+    if (value === "Discuss My Requirements" || value === "Start Requirement Form") { clearMessages(); clearQuickReplies(); switchMode("req"); return; }
+    if (value === "Ask More About SMS") { clearMessages(); clearQuickReplies(); switchMode("ai"); return; }
+
+    if (mode === "ai") {
+      pushUser(value);
+      clearQuickReplies();
+      setInputEnabled(false);
+      answerFaq(value);
+      return;
+    }
+
+    if (mode === "req") {
+      var step = STEPS[stepIndex];
+      if (!step) return;
+      pushUser(value);
+      clearQuickReplies();
+      answers[step.key] = value;
+      advanceStep();
+    }
+  }
+
+  function handleSend() {
+    var val = inputEl.value.trim();
+    if (!val) return;
+    inputEl.value = "";
+    sendBtn.disabled = true;
+    pushUser(val);
+    clearQuickReplies();
+    if (mode === "ai") {
+      setInputEnabled(false);
+      answerFaq(val);
+    } else if (mode === "req") {
+      validateFreeText(val);
+    }
+  }
+
+  function validateFreeText(val) {
+    var step = STEPS[stepIndex];
+    if (!step) return;
+    if (step.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+      pushBot("That doesn't look like a valid email address \u2014 could you double check it? (e.g. you@company.com)");
+      setInputEnabled(true, step.placeholder);
+      return;
+    }
+    if (step.type === "tel" && val.replace(/\D/g, "").length < 7) {
+      pushBot("Please enter a valid phone number.");
+      setInputEnabled(true, step.placeholder);
+      return;
+    }
+    answers[step.key] = val;
+    advanceStep();
+  }
+
+  function startWizard() {
+    updateProgress(0);
+    setInputEnabled(false);
+    typingThen(function () {
+      pushBot(STEPS[0].ask);
+      renderStepPrompt();
+    });
+  }
+
+  function advanceStep() {
+    stepIndex++;
+    updateProgress(stepIndex);
+    if (stepIndex >= STEP_COUNT) {
+      finishWizard();
+      return;
+    }
+    setInputEnabled(false);
+    typingThen(function () {
+      var ask = STEPS[stepIndex].ask;
+      if (answers.fullName) ask = ask.replace("{name}", answers.fullName.split(" ")[0]);
+      pushBot(ask);
+      renderStepPrompt();
+    });
+  }
+
+  function renderStepPrompt() {
+    var step = STEPS[stepIndex];
+    if (!step) return;
+    if (step.type === "quick") {
+      showQuickReplies(step.options.slice());
+      setInputEnabled(false);
+    } else {
+      setInputEnabled(true, step.placeholder || "Type your answer\u2026");
+    }
+  }
+
+  function finishWizard() {
+    setInputEnabled(false);
+    clearQuickReplies();
+    progressEl.classList.remove("is-visible");
+    pushBot("Here's what I understood about your requirement. Please review before I send it to the SMS Safety team.");
+
+    var fieldOrder = [
+      { key: "fullName", label: "Full Name" },
+      { key: "company", label: "Company / Plant" },
+      { key: "email", label: "Email" },
+      { key: "phone", label: "Phone / WhatsApp" },
+      { key: "teamSize", label: "Plant / Team Size" },
+      { key: "focusArea", label: "Primary Focus" },
+      { key: "budget",    label: "Budget" }
+    ];
+    var rows = fieldOrder
+      .filter(function (f) { return answers[f.key] && answers[f.key] !== ""; })
+      .map(function (f) {
+        return '<div class="schat-summary__row"><span class="schat-summary__key">' + f.label + ':</span> <span class="schat-summary__val">' + escapeHtml(answers[f.key]) + '</span></div>';
+      })
+      .join("");
+
+    var msg = document.createElement("div");
+    msg.className = "schat-msg schat-msg--bot";
+    msg.innerHTML =
+      '<div class="schat-summary">' +
+        '<div class="schat-summary__title">' +
+          '<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="var(--amber-deep)" stroke-width="2" stroke-linecap="round"/></svg>' +
+          'Your Requirement Summary' +
+        '</div>' +
+        rows +
+        '<div class="schat-summary__actions">' +
+          '<button class="schat-btn-edit">\u270f\ufe0f Edit Details</button>' +
+          '<button class="schat-btn-confirm">\u2705 Confirm Requirement</button>' +
+        '</div>' +
+      '</div>';
+    messagesEl.appendChild(msg);
+    scrollToBottom();
+    msg.querySelector(".schat-btn-confirm").addEventListener("click", submitRequirement);
+    msg.querySelector(".schat-btn-edit").addEventListener("click", function () {
+      clearMessages();
+      stepIndex = 0; answers = {}; multiSelect = [];
+      progressEl.classList.add("is-visible");
+      startWizard();
+    });
+  }
+
+  function submitRequirement() {
+    if (submitting) return;
+    submitting = true;
+    var fd = new FormData();
+    fd.append("formType", "sms_chat");
+    fd.append("source", "SMS Safety Website Chatbot");
+    fd.append("product", "SMS Safety");
+    fd.append("fullName", answers.fullName || "");
+    fd.append("company", answers.company || "");
+    fd.append("email", answers.email || "");
+    fd.append("phone", answers.phone || "");
+    fd.append("teamSize", answers.teamSize || "");
+    fd.append("focusArea", answers.focusArea || "");
+    fd.append("budget",    answers.budget    || "");
+    lastPayload = fd;
+    sendRequirement(fd);
+  }
+
+  function sendRequirement(fd) {
+    var existingError = messagesEl.querySelector(".schat-error");
+    if (existingError && existingError.closest(".schat-msg")) existingError.closest(".schat-msg").remove();
+    typingThen(function () {
+      fetch(SHEET_ENDPOINT, { method: "POST", body: fd, mode: "no-cors" })
+        .then(function () {
+          submitting = false;
+          showSuccess();
+        })
+        .catch(function (err) {
+          console.error("[SafeGuard SMS Chatbot] Submission error:", err);
+          submitting = false;
+          showError();
+        });
+    }, 1200);
+  }
+
+  function showSuccess() {
+    clearMessages();
+    clearQuickReplies();
+    setInputEnabled(false);
+    var el = document.createElement("div");
+    el.className = "schat-success-msg";
+    el.innerHTML =
+      '<div class="schat-success-msg__icon"><svg viewBox="0 0 24 24" fill="none" width="28" height="28"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/><path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+      '<div class="schat-success-msg__title">Requirement Received! \ud83c\udf89</div>' +
+      '<div class="schat-success-msg__text">Thank you, ' + escapeHtml(answers.fullName || "there") + '! Your requirement has been received successfully.<br><br>Our SafeGuard SMS team will review it and get in touch shortly.</div>';
+    messagesEl.appendChild(el);
+    scrollToBottom();
+    setTimeout(function () { showQuickReplies(["Ask More About SMS"]); }, 1000);
+  }
+
+  function showError() {
+    var el = document.createElement("div");
+    el.className = "schat-msg schat-msg--bot";
+    el.innerHTML =
+      '<div class="schat-error"><span>Something went wrong while submitting your requirement. Please try again.</span><button class="schat-retry-btn" id="schat-retry">Retry</button></div>';
+    messagesEl.appendChild(el);
+    scrollToBottom();
+    document.getElementById("schat-retry").addEventListener("click", function () {
+      submitting = true;
+      el.remove();
+      sendRequirement(lastPayload);
+    });
+  }
+
+  /* ---------------- FAQ matching ---------------- */
+  function answerFaq(text) {
+    typingThen(function () {
+      var q = text.toLowerCase();
+      if (/demo|pricing|cost|implement|my plant|my requirement|discuss|need sms|want sms|get sms|quote/.test(q)) {
+        pushBot("Sure! I can collect a few details about your plant so our team can understand your needs and reach out personally.");
+        showQuickReplies(["Start Requirement Form", "Ask More About SMS"]);
+        setInputEnabled(true);
+        return;
+      }
+      var match = null;
+      for (var i = 0; i < FAQ.length; i++) {
+        if (FAQ[i].q.some(function (kw) { return q.indexOf(kw) !== -1; })) { match = FAQ[i]; break; }
+      }
+      if (match) {
+        pushBot(match.a);
+        if (match.smartSuggest) {
+          showQuickReplies(["Start Requirement Form", "Ask More About SMS"]);
+        } else {
+          showQuickReplies(FALLBACK_QUICK.slice());
+        }
+      } else {
+        pushBot("I can help with SafeGuard SMS \u2014 its features, workflow, platforms, roles, reports and rollout. Try asking about one of those, or if you'd like to discuss your plant's specific requirements, I can collect those for our team.");
+        showQuickReplies(["Key features", "How it works", "Discuss My Requirements"]);
+      }
+      setInputEnabled(true);
+    });
+  }
+
+  /* ---------------- Message rendering helpers ---------------- */
+  function pushBot(text) {
+    var el = document.createElement("div");
+    el.className = "schat-msg schat-msg--bot";
+    var html = escapeHtml(text).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
+    el.innerHTML =
+      '<div class="schat-msg__avatar"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div>' +
+      '<div class="schat-msg__bubble">' + html + '</div>';
+    messagesEl.appendChild(el);
+    scrollToBottom();
+  }
+
+  function pushUser(text) {
+    var el = document.createElement("div");
+    el.className = "schat-msg schat-msg--user";
+    el.innerHTML = '<div class="schat-msg__bubble">' + escapeHtml(text) + '</div>';
+    messagesEl.appendChild(el);
+    scrollToBottom();
+  }
+
+  function typingThen(cb, delay) {
+    var el = document.createElement("div");
+    el.className = "schat-msg schat-msg--bot schat-msg--typing";
+    el.innerHTML =
+      '<div class="schat-msg__avatar"><svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div>' +
+      '<div class="schat-typing"><span></span><span></span><span></span></div>';
+    messagesEl.appendChild(el);
+    scrollToBottom();
+    setTimeout(function () { el.remove(); cb(); }, delay || 900);
+  }
+
+  function showQuickReplies(options) {
+    clearQuickReplies();
+    options.forEach(function (opt) {
+      var btn = document.createElement("button");
+      btn.className = "schat-qr-btn";
+      btn.textContent = opt;
+      btn.addEventListener("click", function () { handleQuickReply(opt); });
+      quickRepliesEl.appendChild(btn);
+    });
+  }
+
+  function clearQuickReplies() { quickRepliesEl.innerHTML = ""; }
+  function clearMessages() { messagesEl.innerHTML = ""; }
+
+  function setInputEnabled(enabled, placeholder) {
+    inputEl.disabled = !enabled;
+    inputEl.placeholder = placeholder || "Type a message\u2026";
+    if (!enabled) sendBtn.disabled = true;
+  }
+
+  function updateProgress(step) {
+    var pct = Math.round((step / STEP_COUNT) * 100);
+    progressFillEl.style.width = pct + "%";
+    progressLabelEl.textContent = "Step " + Math.min(step + 1, STEP_COUNT) + " of " + STEP_COUNT;
+    document.getElementById("schat-progress-pct").textContent = pct + "%";
+  }
+
+  function scrollToBottom() {
+    if (isOpen && messagesEl) requestAnimationFrame(function () { messagesEl.scrollTop = messagesEl.scrollHeight; });
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();

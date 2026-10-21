@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sms.abraca-dabra.com/sitemap.xml

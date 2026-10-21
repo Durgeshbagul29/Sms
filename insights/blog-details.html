@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-G8Q8FL716B"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-G8Q8FL716B');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting to Safety Insights | SMS Safety Management System</title>
+  <meta name="description" content="This article now lives at a new address. You're being redirected to the current SMS Safety Insights article." />
+  <!-- Legacy URL: articles have moved to clean, per-post addresses (insights/<slug>.html).
+       This page exists only to forward old ?slug=... links and is intentionally excluded
+       from indexing so it never competes with the real article pages. -->
+  <meta name="robots" content="noindex, follow" />
+  <meta name="theme-color" content="#0B1E33" />
+  <link rel="icon" href="../assets/img/logo.webp" type="image/webp" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <script src="../assets/js/blogs-data.js" defer></script>
+  <script defer>
+    document.addEventListener('DOMContentLoaded', function () {
+      var slug = new URLSearchParams(window.location.search).get('slug');
+      var blogs = (window.SMS_BLOGS || []);
+      var match = blogs.find(function (b) { return b.slug === slug; });
+      var target = match ? (match.slug + '.html') : '../index.html#insights';
+      var link = document.getElementById('fallback-link');
+      if (link) link.href = target;
+      window.location.replace(target);
+    });
+  </script>
+</head>
+<body>
+  <main style="min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px 24px;">
+    <div>
+      <p style="font:600 1rem/1.5 'Inter',sans-serif;color:#0B1E33;">Redirecting you to the article&hellip;</p>
+      <p style="font:400 0.95rem/1.6 'Inter',sans-serif;color:rgba(11,30,51,0.7);">
+        If you are not redirected automatically,
+        <a id="fallback-link" href="../index.html#insights">continue to SMS Safety Insights</a>.
+      </p>
+    </div>
+  </main>
+</body>
+</html>

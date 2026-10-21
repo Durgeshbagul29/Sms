@@ -1,0 +1,125 @@
+# ==============================================================================
+# SafeGuard SMS - Production Server Configuration (.htaccess)
+# Domain: https://sms.abraca-dabra.com/
+# Optimized for: Core Web Vitals, Browser Caching, Compression & Security
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Custom 404 Error Document
+# ------------------------------------------------------------------------------
+ErrorDocument 404 /404.html
+
+# ------------------------------------------------------------------------------
+# 2. Enforce HTTPS & Canonical Host
+# ------------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Redirect HTTP to HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Clean trailing slash consistency (remove trailing slash from non-directory files)
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} ^(.+)/+$
+  RewriteRule ^(.+)/+$ $1 [R=301,L]
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 3. MIME Types Configuration
+# ------------------------------------------------------------------------------
+<IfModule mod_mime.c>
+  # WebP images
+  AddType image/webp .webp
+  # Web manifest
+  AddType application/manifest+json .webmanifest
+  # Modern fonts
+  AddType font/woff2 .woff2
+  AddType font/woff .woff
+  # XML Sitemap & Robots
+  AddType application/xml .xml
+  AddType text/plain .txt
+  # Charset
+  AddDefaultCharset UTF-8
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 4. GZIP / Brotli Compression (mod_deflate)
+# ------------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/plain
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE application/xml
+  AddOutputFilterByType DEFLATE application/xhtml+xml
+  AddOutputFilterByType DEFLATE application/rss+xml
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/x-javascript
+  AddOutputFilterByType DEFLATE application/json
+  AddOutputFilterByType DEFLATE application/manifest+json
+  AddOutputFilterByType DEFLATE application/ld+json
+  AddOutputFilterByType DEFLATE image/svg+xml
+  AddOutputFilterByType DEFLATE font/woff2
+  AddOutputFilterByType DEFLATE font/woff
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 5. Browser Caching (mod_expires & mod_headers)
+# ------------------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 month"
+
+  # HTML documents - revalidate immediately to ensure fresh updates
+  ExpiresByType text/html "access plus 0 seconds"
+
+  # Manifest, robots, and sitemaps
+  ExpiresByType application/manifest+json "access plus 1 week"
+  ExpiresByType text/plain "access plus 1 day"
+  ExpiresByType application/xml "access plus 1 day"
+
+  # CSS and JavaScript
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType application/x-javascript "access plus 1 year"
+
+  # Images and icons - 1 year long-term caching
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+
+  # Web Fonts - 1 year immutable
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType application/font-woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # 1 Year Caching for Static Images & Web Fonts
+  <FilesMatch "\.(webp|png|jpe?g|gif|ico|svg|woff2?)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # 1 Month Caching for CSS and JS
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=2592000, stale-while-revalidate=86400"
+  </FilesMatch>
+
+  # Freshness for HTML
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+
+  # ----------------------------------------------------------------------------
+  # 6. Security Headers
+  # ----------------------------------------------------------------------------
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
