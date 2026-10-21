@@ -59,13 +59,12 @@ const BLOG_LINK_LABELS = {
 };
 
 function relatedCardHtml(b) {
-  const thumb = b.featuredImage.replace(/\.webp$/, '-thumb.webp');
   const btnLabel = BLOG_LINK_LABELS[b.slug] || 'Read Full Guide';
   return `
               <article class="blog-card">
                 <div class="card-img-wrap">
                   <span class="card-category-badge">${esc(b.category)}</span>
-                  <img src="../${thumb}" srcset="../${thumb} 800w, ../${b.featuredImage} 1600w" sizes="(max-width: 768px) 100vw, 380px" alt="${esc(b.title)}" class="card-img" loading="lazy" width="800" height="450" />
+                  <img src="../${b.featuredImage}" alt="${esc(b.title)}" class="card-img" loading="lazy" width="1200" height="675" />
                 </div>
                 <div class="card-body">
                   <div class="blog-meta-top">
@@ -134,7 +133,7 @@ function buildPage(blog, index) {
     publisher: {
       '@type': 'Organization',
       name: 'AbracaDabra Software Solutions Pvt. Ltd.',
-      logo: { '@type': 'ImageObject', url: `${SITE}/assets/img/logo-106.webp` },
+      logo: { '@type': 'ImageObject', url: `${SITE}/assets/img/logo.webp` },
     },
     mainEntityOfPage: canonicalUrl,
   };
@@ -180,8 +179,8 @@ function buildPage(blog, index) {
   <meta name="twitter:image" content="${imageUrl}" />
 
   <!-- Icons -->
-  <link rel="icon" href="../assets/img/logo-53.webp" type="image/webp" />
-  <link rel="icon" href="../assets/img/logo-53.webp" sizes="32x32" type="image/webp" />
+  <link rel="icon" href="../assets/img/logo.webp" type="image/webp" />
+  <link rel="icon" href="../assets/img/logo.webp" sizes="32x32" type="image/webp" />
   <link rel="icon" href="../assets/img/favicon-192.webp" sizes="192x192" type="image/webp" />
   <link rel="apple-touch-icon" href="../assets/img/favicon-192.webp" />
   <link rel="manifest" href="../site.webmanifest" />
@@ -210,7 +209,7 @@ function buildPage(blog, index) {
     <div class="container-wide">
       <div class="nav-row">
         <a href="../index.html" class="brand" aria-label="SMS Safety Management System home">
-          <img src="../assets/img/logo-106.webp" srcset="../assets/img/logo-106.webp 2x, ../assets/img/logo-53.webp 1x" width="53" height="53" alt="SMS Logo" class="brand-logo" />
+          <img src="../assets/img/logo.webp" width="53" height="53" alt="SMS Logo" class="brand-logo" />
           <span class="brand-text"><strong>SMS</strong><span>SAFETY MANAGEMENT SYSTEM</span></span>
         </a>
         <nav class="nav-links" aria-label="Primary">
@@ -331,7 +330,7 @@ ${blog.fullContent.replace(/\.\.\/index\.html/g, '../index.html')}
       <div class="footer-top">
         <div class="footer-brand">
           <a href="../index.html" class="brand" aria-label="SMS Safety Management System home">
-            <img src="../assets/img/logo-106.webp" srcset="../assets/img/logo-106.webp 2x, ../assets/img/logo-53.webp 1x" width="53" height="53" alt="SMS Logo" class="brand-logo" />
+            <img src="../assets/img/logo.webp" width="53" height="53" alt="SMS Logo" class="brand-logo" />
             <span class="brand-text"><strong>SMS</strong><span>SAFETY MANAGEMENT SYSTEM</span></span>
           </a>
           <p>Safety observation, accident and near-miss reporting on one auditable platform &mdash; web, Android and iOS. Built and supported by AbracaDabra Software Solutions Pvt. Ltd.</p>

@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "name": "AbracaDabra Software Solutions Pvt. Ltd.",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://sms.abraca-dabra.com/assets/img/logo-106.webp"
+          "url": "https://sms.abraca-dabra.com/assets/img/logo.webp"
         }
       },
       "mainEntityOfPage": canonicalUrl
