@@ -24,6 +24,9 @@ ErrorDocument 404 /404.html
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} ^(.+)/+$
   RewriteRule ^(.+)/+$ $1 [R=301,L]
+
+  # Redirect legacy blog-details.html to the insights hub
+  RewriteRule ^insights/blog-details\.html$ /#insights [R=301,L]
 </IfModule>
 
 # ------------------------------------------------------------------------------
